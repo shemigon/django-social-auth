@@ -2,7 +2,7 @@ import re
 
 from unittest import skip
 
-from social_auth.utils import setting
+from social_auth.utils import setting, resolve_url
 from social_auth.tests.base import SocialAuthTestsCase, FormParserByID
 from django.contrib.sites.models import Site
 
@@ -85,4 +85,5 @@ class FacebookTestLogin(FacebookTestCase):
                 use_cookies=True)
 
 
-        self.assertTrue(setting('LOGIN_REDIRECT_URL') in self.make_relative(redirect.headers['Location']))
+        self.assertTrue(resolve_url(setting('LOGIN_REDIRECT_URL')) in
+                        self.make_relative(redirect.headers['Location']))

@@ -10,6 +10,7 @@ from cgi import parse_qsl
 from collections import defaultdict
 
 from django.conf import settings
+from django.core import urlresolvers
 from django.db.models import Model
 from django.db.models.loading import get_model
 from django.contrib.contenttypes.models import ContentType
@@ -143,6 +144,19 @@ def group_backend_by_type(items, key=lambda x: x):
 def setting(name, default=None):
     """Return setting value for given name or default value."""
     return getattr(settings, name, default)
+
+
+def resolve_url(url, *args, **kwargs):
+    try:
+        return urlresolvers.reverse(url, *args, **kwargs)
+    except urlresolvers.NoReverseMatch:
+        # If this is a callable, re-raise.
+        if callable(url):
+            raise
+        # If this doesn't "feel" like a URL, re-raise.
+        if '/' not in url and '.' not in url:
+            raise
+    return url
 
 
 def backend_setting(backend, name, default=None):

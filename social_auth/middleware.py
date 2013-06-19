@@ -4,7 +4,7 @@ from django.contrib.messages.api import error, MessageFailure
 from django.shortcuts import redirect
 
 from social_auth.exceptions import SocialAuthBaseException
-from social_auth.utils import backend_setting, get_backend_name
+from social_auth.utils import backend_setting, get_backend_name, resolve_url
 
 
 class SocialAuthExceptionMiddleware(object):
@@ -54,7 +54,7 @@ class SocialAuthExceptionMiddleware(object):
 
     def get_redirect_uri(self, request, exception):
         if self.backend is not None:
-            return backend_setting(self.backend,
-                                   'SOCIAL_AUTH_BACKEND_ERROR_URL') or \
-                                   settings.LOGIN_ERROR_URL
-        return settings.LOGIN_ERROR_URL
+            return resolve_url(backend_setting(self.backend,
+                                               'SOCIAL_AUTH_BACKEND_ERROR_URL')
+                               or settings.LOGIN_ERROR_URL)
+        return resolve_url(settings.LOGIN_ERROR_URL)

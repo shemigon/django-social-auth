@@ -1,6 +1,6 @@
 from unittest import expectedFailure, skip
 
-from social_auth.utils import setting
+from social_auth.utils import setting, resolve_url
 from social_auth.tests.base import SocialAuthTestsCase, FormParserByID, \
                                    RefreshParser
 from django.test.utils import override_settings
@@ -75,5 +75,5 @@ class TwitterTestLogin(TwitterTestCase):
         response = self.client.get(self.make_relative(parser.value))
         self.assertEqual(response.status_code, 302)
         location = self.make_relative(response['Location'])
-        login_redirect = setting('LOGIN_REDIRECT_URL')
+        login_redirect = resolve_url(setting('LOGIN_REDIRECT_URL'))
         self.assertTrue(location == login_redirect)

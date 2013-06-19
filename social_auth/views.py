@@ -13,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 
-from social_auth.utils import sanitize_redirect, setting, \
+from social_auth.utils import sanitize_redirect, setting, resolve_url, \
                               backend_setting, clean_partial_pipeline
 from social_auth.decorators import dsa_view, disconnect_view
 
@@ -49,7 +49,8 @@ def associate_complete(request, backend, *args, **kwargs):
     user = auth_complete(request, backend, request.user, *args, **kwargs)
 
     if not user:
-        url = backend_setting(backend, 'LOGIN_ERROR_URL', LOGIN_ERROR_URL)
+        url = resolve_url(backend_setting(backend, 'LOGIN_ERROR_URL',
+                                          LOGIN_ERROR_URL))
     elif isinstance(user, HttpResponse):
         return user
     else:
@@ -57,7 +58,7 @@ def associate_complete(request, backend, *args, **kwargs):
               backend_setting(backend,
                               'SOCIAL_AUTH_NEW_ASSOCIATION_REDIRECT_URL') or \
               DEFAULT_REDIRECT
-    return HttpResponseRedirect(url)
+    return HttpResponseRedirect(resolve_url(url))
 
 
 @login_required
@@ -68,7 +69,7 @@ def disconnect(request, backend, association_id=None):
     backend.disconnect(request.user, association_id)
     url = request.REQUEST.get(REDIRECT_FIELD_NAME, '') or \
           backend_setting(backend, 'SOCIAL_AUTH_DISCONNECT_REDIRECT_URL') or \
-          DEFAULT_REDIRECT
+          resolve_url(DEFAULT_REDIRECT)
     return HttpResponseRedirect(url)
 
 
@@ -87,7 +88,8 @@ def auth_process(request, backend):
         redirect = data[REDIRECT_FIELD_NAME]
         if setting('SOCIAL_AUTH_SANITIZE_REDIRECTS', True):
             redirect = sanitize_redirect(request.get_host(), redirect)
-        request.session[REDIRECT_FIELD_NAME] = redirect or DEFAULT_REDIRECT
+        request.session[REDIRECT_FIELD_NAME] = (redirect or
+                                                resolve_url(DEFAULT_REDIRECT))
 
     # Clean any partial pipeline info before starting the process
     clean_partial_pipeline(request)
@@ -122,8 +124,7 @@ def complete_process(request, backend, *args, **kwargs):
             # in authenticate process
             social_user = user.social_user
             if redirect_value:
-                request.session[REDIRECT_FIELD_NAME] = redirect_value or \
-                                                       DEFAULT_REDIRECT
+                request.session[REDIRECT_FIELD_NAME] = redirect_value
 
             if setting('SOCIAL_AUTH_SESSION_EXPIRATION', True):
                 # Set session expiration date if present and not disabled by
@@ -151,14 +152,16 @@ def complete_process(request, backend, *args, **kwargs):
                 url = redirect_value or \
                       backend_setting(backend,
                                       'SOCIAL_AUTH_LOGIN_REDIRECT_URL') or \
-                      DEFAULT_REDIRECT
+                      resolve_url(DEFAULT_REDIRECT)
         else:
             msg = setting('SOCIAL_AUTH_INACTIVE_USER_MESSAGE', None)
-            url = backend_setting(backend, 'SOCIAL_AUTH_INACTIVE_USER_URL',
-                                  LOGIN_ERROR_URL)
+            url = resolve_url(backend_setting(backend,
+                                              'SOCIAL_AUTH_INACTIVE_USER_URL',
+                                              LOGIN_ERROR_URL))
     else:
         msg = setting('LOGIN_ERROR_MESSAGE', None)
-        url = backend_setting(backend, 'LOGIN_ERROR_URL', LOGIN_ERROR_URL)
+        url = resolve_url(backend_setting(backend, 'LOGIN_ERROR_URL',
+                                          LOGIN_ERROR_URL))
     if msg:
         messages.error(request, msg)
 

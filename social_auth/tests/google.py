@@ -2,7 +2,7 @@ import re
 
 from unittest import expectedFailure, skip
 
-from social_auth.utils import setting
+from social_auth.utils import setting, resolve_url
 from social_auth.tests.base import SocialAuthTestsCase, FormParserByID, \
                                    FormParser, RefreshParser
 from django.conf import settings
@@ -78,5 +78,5 @@ class GoogleOpenIdTestLogin(GoogleTestCase):
 
         response = self.client.get(self.make_relative(
                                             result.headers['Location']))
-        self.assertTrue(setting('LOGIN_REDIRECT_URL') in \
+        self.assertTrue(resolve_url(setting('LOGIN_REDIRECT_URL')) in \
                             self.make_relative(response['Location']))
