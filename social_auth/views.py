@@ -152,19 +152,18 @@ def complete_process(request, backend, *args, **kwargs):
                 url = redirect_value or \
                       backend_setting(backend,
                                       'SOCIAL_AUTH_LOGIN_REDIRECT_URL') or \
-                      resolve_url(DEFAULT_REDIRECT)
+                      DEFAULT_REDIRECT
         else:
             msg = setting('SOCIAL_AUTH_INACTIVE_USER_MESSAGE', None)
-            url = resolve_url(backend_setting(backend,
-                                              'SOCIAL_AUTH_INACTIVE_USER_URL',
-                                              LOGIN_ERROR_URL))
+            url = backend_setting(backend, 'SOCIAL_AUTH_INACTIVE_USER_URL',
+                                  LOGIN_ERROR_URL)
     else:
         msg = setting('LOGIN_ERROR_MESSAGE', None)
-        url = resolve_url(backend_setting(backend, 'LOGIN_ERROR_URL',
-                                          LOGIN_ERROR_URL))
+        url = backend_setting(backend, 'LOGIN_ERROR_URL', LOGIN_ERROR_URL)
     if msg:
         messages.error(request, msg)
 
+    url = resolve_url(url)
     if redirect_value and redirect_value != url:
         redirect_value = quote(redirect_value)
         if '?' in url:
